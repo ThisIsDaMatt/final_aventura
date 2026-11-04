@@ -8,9 +8,8 @@ import java.util.Scanner;
  *
  * <p>El juego completo son TRES habitaciones. Despiertas encerrado y debes
  * escapar de cada una resolviendo su puzzle. La habitacion 1 ya funciona de
- * punta a punta; las habitaciones 2 y 3 <b>las construye el equipo
- * programando</b>: el motor ya llama a los metodos PLACEHOLDER que ustedes
- * deben completar para poder llegar al final del juego.</p>
+ * punta a punta; las habitaciones 2 y 3 incluyen acertijos y mecanicas
+ * implementadas para completar la aventura.</p>
  *
  * <p>Fuentes de verdad de cada habitacion N:</p>
  * <ul>
@@ -20,12 +19,8 @@ import java.util.Scanner;
  *   <li><code>arte/*.txt</code> y <code>musica/*.mid</code> - compartidos.</li>
  * </ul>
  *
- * <p><b>PLACEHOLDERS vs TODOs:</b> un PLACEHOLDER es un metodo que el juego ya
- * llama pero cuyo cuerpo esta incompleto a proposito: es el espacio donde el
- * equipo programa (busquen el banner <code>PLACEHOLDER</code>). Un
- * <code>// TODO equipo:</code> es una tarea puntual dentro de un metodo que ya
- * funciona. En VS Code se encuentran todos con Ctrl+Shift+F buscando
- * <code>TODO equipo</code> o <code>PLACEHOLDER</code>.</p>
+ * <p>La configuracion inicial permite elegir modo, nombre y dificultad.
+ * Las pruebas automaticas se ejecutan con <code>java PruebasRegresion</code>.</p>
  *
  * <p><b>Importante:</b> cada equipo construye SU propia version: claves,
  * habitaciones, arte, textos y melodias distintas. El trabajo se rige por el
@@ -58,13 +53,13 @@ public class Main {
     /** Cuantas habitaciones tiene el juego: la victoria esta tras la ultima. */
     public static final int TOTAL_HABITACIONES = 3;
 
-    /** El nombre del jugador; lo pide configurarJugador() (PLACEHOLDER 2). */
+    /** El nombre elegido por el jugador al iniciar la partida. */
     public static String nombreJugador = "aventurero";
 
-    /** La dificultad elegida: 1 = facil, 2 = normal, 3 = dificil (PLACEHOLDER 2). */
+    /** La dificultad elegida: 1 = facil, 2 = normal, 3 = dificil. */
     public static int dificultad = 1;
 
-    /** El modo elegido en seleccionarTipoJuego() (PLACEHOLDER 1); 1 = historia. */
+    /** El modo elegido: 1 = historia, 2 = practica, 3 = contrarreloj. */
     public static int tipoJuego = 1;
     public static int habitacionFinal = TOTAL_HABITACIONES;
     public static int pistasRestantes = Integer.MAX_VALUE;
@@ -201,14 +196,11 @@ public class Main {
     }
 
     /* ====================================================================
-     *                    LOS PLACEHOLDERS DEL EQUIPO
-     *
-     * El motor YA llama a estos metodos. Completarlos es obligatorio para
-     * terminar el juego. Cada uno explica su contrato en el javadoc.
+     *                 CONFIGURACION Y NAVEGACION DEL JUEGO
      * ==================================================================== */
 
     /**
-     * PLACEHOLDER 1 - EL TIPO DE JUEGO.
+     * MENU INICIAL - EL TIPO DE JUEGO.
      *
      * <p>Debe mostrar un menu inicial y leer la opcion del jugador (validada,
      * como leerOpcion()). Modos sugeridos: 1 = HISTORIA (las 3 habitaciones),
@@ -216,7 +208,7 @@ public class Main {
      * 3 = CONTRARRELOJ (historia con movimientos limitados). El modo elegido
      * se guarda en tipoJuego y el resto del motor debe respetarlo.</p>
      *
-     * @return el modo elegido por el jugador (por ahora siempre 1).
+     * @return el modo elegido por el jugador.
      */
     public static int seleccionarTipoJuego() {
         System.out.println();
@@ -239,7 +231,7 @@ public class Main {
     }
 
     /**
-     * PLACEHOLDER 2 - LA TERMINAL INICIAL DEL JUGADOR.
+     * CONFIGURACION DEL JUGADOR.
      *
      * <p>Debe configurar la partida conversando con el jugador: preguntar su
      * nombre (guardarlo en nombreJugador y usarlo en los mensajes del juego),
@@ -264,7 +256,7 @@ public class Main {
     }
 
     /**
-     * PLACEHOLDER 3 - EL ASCII ART DEL JUEGO.
+     * IDENTIDAD VISUAL DEL JUEGO.
      *
      * <p>Debe configurar la identidad visual: un titulo propio del equipo
      * (reemplacen arte/titulo.txt o elijan el archivo segun el tipo de juego
@@ -284,7 +276,7 @@ public class Main {
     }
 
     /**
-     * PLACEHOLDER 4 - LA NAVEGACION COMPLETA DEL JUEGO.
+     * NAVEGACION ENTRE HABITACIONES.
      *
      * <p>Se llama cuando el jugador abre la puerta de una habitacion que NO
      * es la ultima. Debe llevarlo a la siguiente: sumar 1 a habitacionActual,
@@ -335,7 +327,8 @@ public class Main {
      * @return true si la habitacion externa quedo cargada y lista para jugar.
      */
     public static boolean conectarHabitacionExterna(int numero) {
-        // TODO equipo (bonus): cargar y jugar la habitacion de otro equipo.
+        // Bonus opcional: requiere copiar primero los tres archivos de una
+        // habitacion externa y ampliar el flujo de navegacion.
         return false;
     }
 
@@ -805,8 +798,7 @@ public class Main {
 
     /**
      * La pista que toca segun el estado del juego (tecla H).
-     * TODO equipo: pistas propias para las habitaciones 2 y 3, y limite
-     * de pistas segun la dificultad.
+     * Las pistas cambian segun la habitacion y respetan el limite de dificultad.
      */
     public static String darPista() {
         if (pistasRestantes <= 0) return "Ya no te quedan pistas. Examina los objetos y usa las notas.";
@@ -832,10 +824,7 @@ public class Main {
     }
 
     /**
-     * EL EASTER EGG (tecla secreta X): el gancho ya esta conectado.
-     * TODO equipo: programen aqui su secreto. Ideas: el modo desarrollador
-     * que imprime la matriz de zonas, un objeto oculto, un mensaje del
-     * creador del cuarto.
+     * EL EASTER EGG (tecla secreta X): muestra un mensaje oculto del equipo.
      */
     public static void easterEgg() {
         mensaje = "SECRETO: La paciencia tambien es una herramienta. Observa los simbolos y revisa cada pista.";
