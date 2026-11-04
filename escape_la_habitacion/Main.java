@@ -138,7 +138,7 @@ public class Main {
     public static String clave3;
     public static final int PASOS_INICIALES_H2 = 180;
     public static final int PENALIZACION_TETANO = 25;
-    public static final int PASOS_INICIALES_H3 = 145;
+    public static final int PASOS_INICIALES_H3 = 165;
     public static final int PASOS_POR_ESTRELLA = 20;
 
     /**
