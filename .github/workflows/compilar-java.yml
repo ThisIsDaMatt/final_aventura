@@ -31,3 +31,5 @@ jobs:
           test -f objetos3.csv
       - name: Compilar
         run: javac *.java
+      - name: Ejecutar pruebas de regresion
+        run: java PruebasRegresion
