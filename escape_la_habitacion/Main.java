@@ -72,6 +72,8 @@ public class Main {
 
     /** La columna de la matriz donde esta parado el jugador. */
     public static int columna;
+    public static int filaObjeto;
+    public static int columnaObjeto;
 
     /** El mensaje que se muestra bajo el mapa en cada turno. */
     public static String mensaje = "Despiertas encerrado y no recuerdas nada. Explora.";
@@ -463,7 +465,7 @@ public class Main {
                 else { pasosRestantes -= 40; mensaje = "Volviste a cruzar los pinchos: pierdes 40 pasos adicionales."; }
             } else mensaje = "Caminas hacia " + nombreDireccion(comando) + ".";
             if (habitacionActual >= 2 && pasosRestantes <= 0) { pasosRestantes = 0; derrota = true; return true; }
-        } else if ((casilla >= 'A' && casilla <= 'Z') || casilla == '?') return preguntarObjeto(casilla);
+        } else if ((casilla >= 'A' && casilla <= 'Z') || casilla == '?' || casilla == '*') { filaObjeto = nf; columnaObjeto = nc; return preguntarObjeto(casilla); }
         else { Sonido.golpe(); mensaje = "Algo solido te bloquea el paso."; }
         return false;
     }
@@ -498,72 +500,96 @@ public class Main {
      * @return true si el objeto era la puerta final y el jugador escapo.
      */
     public static boolean preguntarObjeto(char simbolo) {
+
         String[] objeto = buscarObjeto(simbolo);
-        if (objeto == null) {
-            mensaje = "Hay un objeto sin registrar ('" + simbolo + "'). Revisen el CSV.";
-            return false;
-        }
-
+        if (objeto == null) { mensaje = "Objeto sin registrar: " + simbolo; return false; }
         dibujarPantalla(panelObjeto(objeto));
-        int opcion = leerOpcion();
-        if (opcion == 2) {
-            mensaje = "Decides seguir explorando.";
-            return false;
-        }
+        if (leerOpcion() == 2) { mensaje = "Decides seguir explorando."; return false; }
 
-        // COMPORTAMIENTOS ESPECIALES por objeto van aqui.
-        // TODO equipo: agreguen los else-if de SUS objetos especiales
-        //              (en las habitaciones 2 y 3 necesitaran varios).
-
-        // La alfombra entrega la llave al inventario la primera vez.
-        if (simbolo == 'A') {
-            abrirEscena(objeto);
-            recordarMirado(simbolo);
-            if (!tieneObjeto("llave oxidada")) {
-                guardarObjeto("llave oxidada");
-                Sonido.recoger();
-                mensaje = "Guardaste la LLAVE OXIDADA en tu inventario.";
-            } else {
-                mensaje = "Bajo la alfombra ya solo queda polvo.";
+        if (habitacionActual == 1) {
+            if (simbolo == 'A') {
+                abrirEscena(objeto); recordarMirado(simbolo);
+                if (!tieneObjeto("llave oxidada")) { guardarObjeto("llave oxidada"); Sonido.recoger(); mensaje = "Guardaste la llave oxidada."; }
+                return false;
             }
-            return false;
-        }
-
-        // El cofre exige la llave: sin ella no revela su numero.
-        if (simbolo == 'C') {
-            if (!tieneObjeto("llave oxidada")) {
-                abrirEscena(objeto); // el cofre cerrado (arte y detalle del CSV)
-                Sonido.error();
-                mensaje = "El candado del cofre no cede. Algo debe abrirlo...";
-            } else {
-                Sonido.exito();
-                mostrarEscena("el cofre abierto", "cofre_abierto",
-                        "Usas la llave oxidada y el candado cae. CLIC. Grabado en la tapa esta el numero "
-                        + numeroCofre + ".");
-                esperarEnter();
-                recordarMirado(simbolo);
-                mensaje = "El cofre revelo su numero: " + numeroCofre + ".";
+            if (simbolo == 'C') {
+                if (!tieneObjeto("llave oxidada")) { abrirEscena(objeto); mensaje = "Necesitas una llave para abrir el cofre."; }
+                else { mostrarEscena("Cofre abierto","cofre_abierto","El numero grabado es "+numeroCofre+"."); esperarEnter(); recordarMirado(simbolo); }
+                return false;
             }
-            return false;
+            if (simbolo == 'N') { mostrarEscena(objeto[1],objeto[2],objeto[3]+" La operacion es: "+operaciones[operacionElegida]+"."); esperarEnter(); recordarMirado(simbolo); return false; }
+            if (simbolo == 'P') return abrirPuerta(objeto);
         }
 
-        // La nota revela la operacion sorteada en esta habitacion.
-        if (simbolo == 'N') {
-            mostrarEscena(objeto[1], objeto[2],
-                    objeto[3] + " Hoy la operacion es: " + operaciones[operacionElegida] + ".");
-            esperarEnter();
-            recordarMirado(simbolo);
-            mensaje = "Miraste " + objeto[1] + ".";
-            return false;
+        if (habitacionActual == 2) {
+            if (simbolo == 'L') {
+                if (!tieneObjeto("llave pequeña")) { guardarObjeto("llave pequeña"); Sonido.recoger(); }
+                recordarMirado(simbolo); mensaje = "Recogiste la llave pequeña."; return false;
+            }
+            if (simbolo == 'I') {
+                mostrarEscena(objeto[1],objeto[2],"El código de esta inscripción es "+codigoFalso2+". Parece una pista, pero no es el tratamiento.");
+                esperarEnter(); recordarMirado(simbolo); return false;
+            }
+            if (simbolo == 'C') {
+                if (!tieneObjeto("llave pequeña")) { mensaje = "El cofre está cerrado. Necesitas la llave pequeña."; Sonido.error(); }
+                else if (!cofreAbierto2) {
+                    cofreAbierto2 = true;
+                    mostrarEscena("Cofre abierto","cofre_abierto","Código del estante: "+codigoMedicina2+". Código de salida: "+codigoSalida2+".");
+                    esperarEnter(); mensaje = "Ya conoces los dos códigos.";
+                } else mensaje = "El cofre ya está abierto.";
+                recordarMirado(simbolo); return false;
+            }
+            if (simbolo == 'E') {
+                if (estanteBloqueado2) { mensaje = "El estante quedó bloqueado permanentemente."; return false; }
+                System.out.print("Código del estante (ENTER cancela): ");
+                String intento = lector.nextLine().trim();
+                if (intento.isEmpty()) return false;
+                if (intento.equals(codigoFalso2)) { estanteBloqueado2 = true; mensaje = "Usaste el código falso. El estante quedó bloqueado."; Sonido.error(); }
+                else if (intento.equals(codigoMedicina2)) { curado2 = true; tetano = false; mensaje = "Encontraste el tratamiento. El tetanos fue curado."; Sonido.exito(); }
+                else { mensaje = "Código incorrecto. Puedes volver a intentarlo."; Sonido.error(); }
+                recordarMirado(simbolo); return false;
+            }
+            if (simbolo == 'D') {
+                if (!tieneObjeto("llave pequeña")) { mensaje = "La puerta interior solo puede abrirse desde el lado de la llave."; Sonido.error(); return false; }
+                puertaInteriorAbierta2 = true; mensaje = "La puerta interior quedó abierta. Ya puedes atravesarla."; return false;
+            }
+            if (simbolo == 'P') {
+                if (!cofreAbierto2) { mensaje = "Primero debes abrir el cofre y descubrir el código de salida."; return false; }
+                System.out.print("Código de salida (ENTER cancela): ");
+                String intento = lector.nextLine().trim();
+                if (intento.equals(codigoSalida2)) return siguienteHabitacion();
+                if (!intento.isEmpty()) { mensaje = "Código incorrecto. Inténtalo otra vez."; Sonido.error(); }
+                return false;
+            }
         }
 
-        if (simbolo == 'P') {
-            return abrirPuerta(objeto);
+        if (habitacionActual == 3) {
+            if (simbolo == 'K') {
+                llave3 = true; puertaInteriorAbierta3 = true;
+                mostrarEscena("La llave antigua","alfombra","El tercer número es "+numeros3[2]+". La llave abre la puerta interior y no se consume.");
+                esperarEnter(); recordarMirado(simbolo); mensaje = "Encontraste la llave y el tercer número."; return false;
+            }
+            if (simbolo == '?') {
+                int numero;
+                if (filaObjeto == 1 && !numeroUno3) { numeroUno3 = true; numero = numeros3[0]; }
+                else if (filaObjeto == 9 && !numeroDos3) { numeroDos3 = true; numero = numeros3[1]; }
+                else { mensaje = "Esta casilla ya fue revisada."; return false; }
+                mostrarEscena("Número oculto","nota","Encontraste el número "+numero+".");
+                esperarEnter(); recordarMirado(simbolo); return false;
+            }
+            if (simbolo == '*') {
+                if (filaObjeto == 1 && !estrellaSuperior3) { estrellaSuperior3 = true; pasosRestantes += PASOS_POR_ESTRELLA; mensaje = "La estrella te concede 20 pasos."; }
+                else if (filaObjeto == 11 && !estrellaInferior3) { estrellaInferior3 = true; pasosRestantes += PASOS_POR_ESTRELLA; mensaje = "La estrella te concede 20 pasos."; }
+                else { mensaje = "Ya recogiste esta estrella."; return false; }
+                recordarMirado(simbolo); Sonido.recoger(); return false;
+            }
+            if (simbolo == 'D') {
+                if (!llave3) { mensaje = "La puerta interior está cerrada. Necesitas la llave K."; return false; }
+                puertaInteriorAbierta3 = true; mensaje = "La puerta interior quedó abierta."; return false;
+            }
+            if (simbolo == 'P') return abrirPuerta(objeto);
         }
-        abrirEscena(objeto);
-        recordarMirado(simbolo);
-        mensaje = "Miraste " + objeto[1] + ". Sigues frente al objeto.";
-        return false;
+        abrirEscena(objeto); recordarMirado(simbolo); mensaje = "Has examinado "+objeto[1]+"."; return false;
     }
 
     /** El panel con el preview (mini arte) del objeto y la pregunta. */
@@ -648,25 +674,30 @@ public class Main {
      * @return true si el juego termina.
      */
     public static boolean abrirPuerta(String[] objeto) {
-        mostrarEscena(objeto[1], objeto[2], objeto[3]);
-        recordarMirado('P');
-        System.out.print(centrar("Clave (solo ENTER para alejarte): ", ANCHO_ESCENA));
+
+        if (habitacionActual == 3) {
+            mostrarEscena(objeto[1],objeto[2],"Ordena los tres números de menor a mayor. Multiplica primero por segundo, primero por tercero y segundo por tercero. Conserva las dos últimas cifras de cada producto; si queda una, agrega un cero a la izquierda. Une los resultados.");
+            System.out.print("Clave de seis cifras (ENTER cancela): ");
+            String intento = lector.nextLine().trim();
+            if (intento.isEmpty()) { mensaje = "Te alejas de la puerta."; return false; }
+            if (!numeroUno3 || !numeroDos3 || !llave3) { mensaje = "Todavía no has encontrado los tres números."; return false; }
+            if (intento.equals(clave3)) { mostrarVictoria(); return true; }
+            intentosPuerta3++; Sonido.error();
+            if (intentosPuerta3 >= 3) { derrota = true; mensaje = "Agotaste los tres intentos."; return true; }
+            mensaje = "Clave incorrecta. Te quedan "+(3-intentosPuerta3)+" intentos.";
+            return false;
+        }
+        if (habitacionActual == 2) { mensaje = "Necesitas el código de salida que estaba dentro del cofre."; return false; }
+        mostrarEscena(objeto[1],objeto[2],objeto[3]); recordarMirado('P');
+        System.out.print("Clave (solo ENTER para alejarte): ");
         String intento = lector.nextLine().trim();
         if (intento.equals(clave)) {
             Sonido.exito();
-            if (habitacionActual >= TOTAL_HABITACIONES) {
-                mostrarVictoria();
-                return true;
-            }
-            return siguienteHabitacion(); // PLACEHOLDER 4: el viaje continua
+            if (habitacionActual >= TOTAL_HABITACIONES) { mostrarVictoria(); return true; }
+            return siguienteHabitacion();
         }
-        if (intento.isEmpty()) {
-            mensaje = "Te alejas de la puerta sin intentar nada.";
-        } else {
-            Sonido.error();
-            mensaje = "CLAVE INCORRECTA. El teclado parpadea en silencio.";
-            // TODO equipo: en dificultad DIFICIL limitar los intentos.
-        }
+        if (intento.isEmpty()) mensaje = "Te alejas de la puerta sin intentar nada.";
+        else { Sonido.error(); mensaje = "CLAVE INCORRECTA."; }
         return false;
     }
 
@@ -725,19 +756,23 @@ public class Main {
      * de pistas segun la dificultad.
      */
     public static String darPista() {
-        if (mirados.length() == 0) {
-            return "PISTA: los objetos guardan secretos. Camina hacia uno y miralo de cerca.";
+
+        if (habitacionActual == 2) {
+            if (!tieneObjeto("llave pequeña")) return "Busca la llave pequeña. Tendrás que cruzar los pinchos.";
+            if (!cofreAbierto2) return "La llave abre el cofre. Dentro hay un código para el estante y otro para la salida.";
+            if (!curado2 && !estanteBloqueado2) return "El estante cura el tetanos con su código verdadero. La inscripción I es falsa.";
+            return "Busca la puerta interior desde el lado donde encontraste la llave.";
         }
-        if (!tieneObjeto("llave oxidada")) {
-            return "PISTA: en esta habitacion hay algo escondido DEBAJO de algo.";
+        if (habitacionActual == 3) {
+            if (!llave3) return "Busca la llave K. Abre la puerta interior y revela un número.";
+            if (!numeroUno3 || !numeroDos3) return "Encuentra las dos casillas con signo de interrogación.";
+            return "Ordena los números y realiza las tres multiplicaciones indicadas en la puerta.";
         }
-        if (mirados.indexOf('C') < 0) {
-            return "PISTA: la llave que cargas abre algo... algo que guarda un numero.";
-        }
-        if (mirados.indexOf('N') < 0) {
-            return "PISTA: ya tienes el numero. La nota dice que OPERACION aplicarle.";
-        }
-        return "PISTA: aplica la operacion de la nota al numero del cofre. El resultado abre la puerta.";
+        if (mirados.length() == 0) return "Los objetos guardan secretos. Camina hacia uno y míralo de cerca.";
+        if (!tieneObjeto("llave oxidada")) return "Hay algo escondido debajo de algo.";
+        if (mirados.indexOf('C') < 0) return "La llave abre algo que guarda un número.";
+        if (mirados.indexOf('N') < 0) return "La nota revela qué operación aplicar.";
+        return "Aplica la operación de la nota al número del cofre.";
     }
 
     /**
