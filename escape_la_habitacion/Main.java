@@ -118,6 +118,7 @@ public class Main {
     /** La clave de la puerta: la operacion aplicada al numero del cofre. */
     public static String clave;
     public static boolean tetano = false;
+    public static boolean tetanoYaContrajo = false;
     public static int pasosRestantes = 0;
     public static boolean derrota = false;
     public static boolean cofreAbierto2 = false;
@@ -462,8 +463,8 @@ public class Main {
             if (habitacionActual >= 2) pasosRestantes--;
             if (entraPinchos) {
                 entradasPinchos2++;
-                if (!tetano) { tetano = true; pasosRestantes -= PENALIZACION_TETANO; mensaje = "Contrajiste tetanos: pierdes 25 pasos adicionales."; }
-                else { pasosRestantes -= 40; mensaje = "Volviste a cruzar los pinchos: pierdes 40 pasos adicionales."; }
+                if (!tetanoYaContrajo) { tetanoYaContrajo = true; tetano = true; pasosRestantes -= PENALIZACION_TETANO; mensaje = "Contrajiste tetanos: pierdes 25 pasos adicionales."; }
+                else { pasosRestantes -= 40; mensaje = tetano ? "Volviste a cruzar los pinchos: pierdes 40 pasos adicionales." : "Cruzas de nuevo los pinchos sin contraer tetanos, pero pierdes 40 pasos."; }
             } else mensaje = "Caminas hacia " + nombreDireccion(comando) + ".";
             if (habitacionActual >= 2 && pasosRestantes <= 0) { pasosRestantes = 0; derrota = true; return true; }
         } else if ((casilla >= 'A' && casilla <= 'Z') || casilla == '?' || casilla == '*') { filaObjeto = nf; columnaObjeto = nc; return preguntarObjeto(casilla); }
