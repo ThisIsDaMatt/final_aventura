@@ -306,7 +306,7 @@ public class Main {
     }
 
     /**
-     * PLACEHOLDER BONUS - HABITACIONES DE OTROS EQUIPOS (+10%).
+     * BONUS OPCIONAL - HABITACIONES DE OTROS EQUIPOS (+10%).
      *
      * <p>Como todas las habitaciones del salon usan el mismo formato
      * (habitacionN.txt + zonasN.txt + objetosN.csv + su arte), es posible
