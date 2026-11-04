@@ -1,0 +1,7 @@
+simbolo,nombre,archivo,detalle
+L,una llave pequeña,alfombra,Una llave que parece abrir la puerta interior de esta habitación.
+I,una inscripción falsa,nota,La inscripción muestra un código de cuatro cifras. Parece importante, pero podría ser una trampa.
+C,un cofre cerrado,cofre,El cofre está cerrado. Necesitas la llave pequeña para abrirlo.
+E,un estante metálico,nota,El estante tiene un teclado numérico. Introduce el código correcto para encontrar el tratamiento.
+D,una puerta interior,puerta,Una puerta que separa las dos zonas de la habitación. Solo puede abrirse desde el lado de la llave.
+P,la puerta de salida,puerta,La puerta de salida tiene un teclado numérico. Necesitas el código que estaba guardado en el cofre.
