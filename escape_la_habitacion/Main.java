@@ -453,8 +453,9 @@ public class Main {
         if (totalInventario == 0) contenido[4] = "  (vacio)";
         else for (int i = 0; i < totalInventario; i++) contenido[4+i] = "  - " + inventario[i];
         if (habitacionActual >= 2) {
-            contenido[4+lineasInventario] = "Pasos: " + pasosRestantes;
-            contenido[5+lineasInventario] = tetano ? "TETANOSIS: activa" : "Estado: estable";
+            contenido[4+lineasInventario] = "Pasos restantes: " + pasosRestantes;
+            contenido[5+lineasInventario] = tetano ? "TETANOSIS: activa"
+                    : (curado2 ? "Tetanos: curado" : "Estado: estable");
         }
         String[] caja = enmarcar(contenido);
         String[] panel = new String[caja.length + 4];
@@ -573,7 +574,12 @@ public class Main {
                     cofreAbierto2 = true;
                     mostrarEscena("Cofre abierto","cofre_abierto","Código del estante: "+codigoMedicina2+". Código de salida: "+codigoSalida2+".");
                     esperarEnter(); mensaje = "Ya conoces los dos códigos.";
-                } else mensaje = "El cofre ya está abierto.";
+                } else {
+                    mostrarEscena("Cofre abierto","cofre_abierto",
+                            "Código del estante: "+codigoMedicina2+". Código de salida: "+codigoSalida2+".");
+                    esperarEnter();
+                    mensaje = "El cofre ya está abierto. Puedes consultar los códigos cuando quieras.";
+                }
                 recordarMirado(simbolo); return false;
             }
             if (simbolo == 'E') {
