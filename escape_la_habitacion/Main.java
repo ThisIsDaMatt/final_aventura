@@ -115,6 +115,28 @@ public class Main {
 
     /** La clave de la puerta: la operacion aplicada al numero del cofre. */
     public static String clave;
+    public static boolean tetano = false;
+    public static int pasosRestantes = 0;
+    public static boolean derrota = false;
+    public static boolean cofreAbierto2 = false;
+    public static boolean estanteBloqueado2 = false;
+    public static boolean curado2 = false;
+    public static boolean puertaInteriorAbierta2 = false;
+    public static int entradasPinchos2 = 0;
+    public static boolean estrellaSuperior3 = false;
+    public static boolean estrellaInferior3 = false;
+    public static boolean llave3 = false;
+    public static boolean puertaInteriorAbierta3 = false;
+    public static boolean numeroUno3 = false;
+    public static boolean numeroDos3 = false;
+    public static int intentosPuerta3 = 0;
+    public static String codigoMedicina2, codigoFalso2, codigoSalida2;
+    public static int[] numeros3 = new int[3];
+    public static String clave3;
+    public static final int PASOS_INICIALES_H2 = 180;
+    public static final int PENALIZACION_TETANO = 25;
+    public static final int PASOS_INICIALES_H3 = 145;
+    public static final int PASOS_POR_ESTRELLA = 20;
 
     /**
      * El ciclo de vida del juego: configuracion inicial (los placeholders),
@@ -122,6 +144,7 @@ public class Main {
      */
     public static void main(String[] args) {
         Sonido.iniciar();
+        generarSecretosPartida();
 
         // ---- Configuracion inicial: aqui viven 3 de los placeholders ----
         configurarArte();
@@ -239,20 +262,16 @@ public class Main {
      *         nueva habitacion.
      */
     public static boolean siguienteHabitacion() {
-        // TODO equipo: habitacionActual++, cargarMundo(...), transicion y return false.
-        System.out.println();
+
+        if (habitacionActual >= TOTAL_HABITACIONES) return true;
+        habitacionActual++;
+        if (!cargarMundo(habitacionActual)) { derrota = true; return true; }
         System.out.println(bordeEscena());
-        System.out.println();
-        System.out.println(centrar("Escapaste de la habitacion " + habitacionActual + "...", ANCHO_ESCENA));
-        System.out.println(centrar("pero la puerta da a un pasillo EN CONSTRUCCION.", ANCHO_ESCENA));
-        System.out.println();
-        System.out.println(centrar("Equipo: las habitaciones " + (habitacionActual + 1)
-                + " y " + TOTAL_HABITACIONES + " son SU mision.", ANCHO_ESCENA));
-        System.out.println();
+        System.out.println(centrar("HABITACION " + habitacionActual, ANCHO_ESCENA));
+        System.out.println(centrar("La siguiente prueba comienza...", ANCHO_ESCENA));
         System.out.println(bordeEscena());
-        System.out.print(centrar("[ ENTER para salir ]", ANCHO_ESCENA));
-        lector.nextLine();
-        return true; // provisional: el juego termina en la habitacion 1
+        esperarEnter();
+        return false;
     }
 
     /**
@@ -291,26 +310,36 @@ public class Main {
      * @return true si todos los archivos cargaron bien.
      */
     public static boolean cargarMundo(int numero) {
+
         visual = cargarMatriz("habitacion" + numero + ".txt");
         zonas = cargarMatriz("zonas" + numero + ".txt");
         objetos = cargarObjetos("objetos" + numero + ".csv");
-        if (visual == null || zonas == null || objetos == null) {
-            return false;
-        }
+        if (visual == null || zonas == null || objetos == null) return false;
+        if (visual.length != zonas.length) return false;
+        for (int i = 0; i < visual.length; i++) if (visual[i].length != zonas[i].length) return false;
         calcularAnchoMapa();
         buscarInicio();
-        mirados = ""; // cada habitacion cuenta sus propios objetos mirados
-
-        // El numero del cofre: decena 1-9 y unidad par distinta de cero,
-        // asi la MITAD es exacta y el numero AL REVES no empieza por cero.
-        int decena = 1 + (int) (Math.random() * 9);
-        int[] unidadesPares = {2, 4, 6, 8};
-        int unidad = unidadesPares[(int) (Math.random() * unidadesPares.length)];
-        numeroCofre = decena * 10 + unidad;
-
-        // La operacion de esta habitacion y su clave.
-        operacionElegida = (int) (Math.random() * operaciones.length);
-        clave = calcularClave(operacionElegida, numeroCofre);
+        mirados = "";
+        mensaje = "Explora la habitacion y encuentra la salida.";
+        if (numero == 1) {
+            int decena = 1 + (int)(Math.random() * 9);
+            int[] pares = {2, 4, 6, 8};
+            numeroCofre = decena * 10 + pares[(int)(Math.random() * pares.length)];
+            operacionElegida = (int)(Math.random() * operaciones.length);
+            clave = calcularClave(operacionElegida, numeroCofre);
+        } else {
+            inventario = new String[10]; totalInventario = 0;
+            if (numero == 2) {
+                pasosRestantes = PASOS_INICIALES_H2 - (tetano ? PENALIZACION_TETANO : 0);
+                cofreAbierto2 = false; estanteBloqueado2 = false; curado2 = false;
+                puertaInteriorAbierta2 = false; entradasPinchos2 = 0;
+            } else {
+                pasosRestantes = PASOS_INICIALES_H3 - (tetano ? PENALIZACION_TETANO : 0);
+                estrellaSuperior3 = false; estrellaInferior3 = false; llave3 = false;
+                puertaInteriorAbierta3 = false; numeroUno3 = false; numeroDos3 = false;
+                intentosPuerta3 = 0;
+            }
+        }
         return true;
     }
 
@@ -381,30 +410,27 @@ public class Main {
 
     /** El panel cuando no hay objeto cerca: progreso, inventario y comandos. */
     public static String[] panelEstado() {
+
         int lineasInventario = Math.max(1, totalInventario);
-        String[] contenido = new String[4 + lineasInventario];
+        int extras = habitacionActual >= 2 ? 2 : 0;
+        String[] contenido = new String[4 + lineasInventario + extras];
         contenido[0] = "Habitacion " + habitacionActual + " de " + TOTAL_HABITACIONES;
         contenido[1] = "Objetos mirados: " + mirados.length() + " de " + objetos.length;
         contenido[2] = "";
         contenido[3] = "Inventario:";
-        if (totalInventario == 0) {
-            contenido[4] = "  (vacio)";
-        } else {
-            for (int i = 0; i < totalInventario; i++) {
-                contenido[4 + i] = "  - " + inventario[i];
-            }
+        if (totalInventario == 0) contenido[4] = "  (vacio)";
+        else for (int i = 0; i < totalInventario; i++) contenido[4+i] = "  - " + inventario[i];
+        if (habitacionActual >= 2) {
+            contenido[4+lineasInventario] = "Pasos: " + pasosRestantes;
+            contenido[5+lineasInventario] = tetano ? "TETANOSIS: activa" : "Estado: estable";
         }
-        // TODO equipo: mostrar aqui el nombre del jugador y la dificultad.
-
         String[] caja = enmarcar(contenido);
         String[] panel = new String[caja.length + 4];
-        for (int i = 0; i < caja.length; i++) {
-            panel[i] = caja[i];
-        }
+        for (int i = 0; i < caja.length; i++) panel[i] = caja[i];
         panel[caja.length] = "";
-        panel[caja.length + 1] = " Moverse: W A S D";
-        panel[caja.length + 2] = " Pista: H | Rendirse: Q";
-        panel[caja.length + 3] = " Musica: M | Efectos: E";
+        panel[caja.length+1] = " Moverse: W A S D";
+        panel[caja.length+2] = " Pista: H | Rendirse: Q";
+        panel[caja.length+3] = " Musica: M | Efectos: E";
         return panel;
     }
 
@@ -416,32 +442,29 @@ public class Main {
      * @return true solo si el jugador escapo y el juego termina.
      */
     public static boolean mover(String comando) {
-        int nuevaFila = fila;
-        int nuevaColumna = columna;
-        if (comando.equals("W")) {
-            nuevaFila--;        // arriba = una fila menos
-        } else if (comando.equals("S")) {
-            nuevaFila++;        // abajo = una fila mas
-        } else if (comando.equals("D")) {
-            nuevaColumna++;     // derecha = una columna mas
-        } else if (comando.equals("A")) {
-            nuevaColumna--;     // izquierda = una columna menos
-        } else {
-            mensaje = "No entiendo '" + comando + "'. Usa W A S D (H = pista, Q = rendirse).";
-            return false;
-        }
 
-        char casilla = casillaZona(nuevaFila, nuevaColumna);
-        if (casilla == '.') {
-            fila = nuevaFila;
-            columna = nuevaColumna;
-            mensaje = "Caminas hacia " + nombreDireccion(comando) + ".";
-        } else if (casilla >= 'A' && casilla <= 'Z') {
-            return preguntarObjeto(casilla); // chocaste con un objeto
-        } else {
-            Sonido.golpe();
-            mensaje = "Algo solido te bloquea el paso.";
-        }
+        int nf = fila, nc = columna;
+        if (comando.equals("W")) nf--;
+        else if (comando.equals("S")) nf++;
+        else if (comando.equals("D")) nc++;
+        else if (comando.equals("A")) nc--;
+        else { mensaje = "Usa W, A, S o D."; return false; }
+        char casilla = casillaZona(nf, nc);
+        if (habitacionActual >= 2 && pasosRestantes <= 0) { derrota = true; return true; }
+        if (casilla == 'D' && ((habitacionActual == 2 && puertaInteriorAbierta2) ||
+                (habitacionActual == 3 && puertaInteriorAbierta3))) casilla = '.';
+        if (casilla == '.' || (casilla == 'S' && habitacionActual == 2)) {
+            boolean entraPinchos = casilla == 'S' && casillaZona(fila, columna) != 'S';
+            fila = nf; columna = nc;
+            if (habitacionActual >= 2) pasosRestantes--;
+            if (entraPinchos) {
+                entradasPinchos2++;
+                if (!tetano) { tetano = true; pasosRestantes -= PENALIZACION_TETANO; mensaje = "Contrajiste tetanos: pierdes 25 pasos adicionales."; }
+                else { pasosRestantes -= 40; mensaje = "Volviste a cruzar los pinchos: pierdes 40 pasos adicionales."; }
+            } else mensaje = "Caminas hacia " + nombreDireccion(comando) + ".";
+            if (habitacionActual >= 2 && pasosRestantes <= 0) { pasosRestantes = 0; derrota = true; return true; }
+        } else if ((casilla >= 'A' && casilla <= 'Z') || casilla == '?') return preguntarObjeto(casilla);
+        else { Sonido.golpe(); mensaje = "Algo solido te bloquea el paso."; }
         return false;
     }
 
@@ -904,6 +927,25 @@ public class Main {
         }
         return matriz;
     }
+
+
+    public static void generarSecretosPartida() {
+        codigoMedicina2 = codigoCuatroCifras();
+        do { codigoFalso2 = codigoCuatroCifras(); } while (codigoFalso2.equals(codigoMedicina2));
+        do { codigoSalida2 = codigoCuatroCifras(); } while (codigoSalida2.equals(codigoMedicina2) || codigoSalida2.equals(codigoFalso2));
+        for (int i=0; i<3; i++) {
+            boolean repetido;
+            do {
+                numeros3[i] = 10 + (int)(Math.random()*90);
+                repetido = (i>0 && numeros3[i]==numeros3[0]) || (i>1 && numeros3[i]==numeros3[1]);
+            } while (repetido);
+        }
+        int[] n = numeros3.clone();
+        for(int i=0;i<2;i++) for(int j=i+1;j<3;j++) if(n[i]>n[j]) { int t=n[i]; n[i]=n[j]; n[j]=t; }
+        clave3 = dosCifras(n[0]*n[1]%100) + dosCifras(n[0]*n[2]%100) + dosCifras(n[1]*n[2]%100);
+    }
+    public static String codigoCuatroCifras() { return ""+(1000+(int)(Math.random()*9000)); }
+    public static String dosCifras(int n) { return n<10 ? "0"+n : ""+n; }
 
     /** Lee un CSV de objetos (saltando el encabezado) a una matriz de String. */
     public static String[][] cargarObjetos(String ruta) {
