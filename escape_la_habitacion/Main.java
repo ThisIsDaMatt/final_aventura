@@ -627,6 +627,11 @@ public class Main {
                 if (filaObjeto == 1 && !estrellaSuperior3) { estrellaSuperior3 = true; pasosRestantes += PASOS_POR_ESTRELLA; mensaje = "La estrella te concede 20 pasos."; }
                 else if (filaObjeto == 11 && !estrellaInferior3) { estrellaInferior3 = true; pasosRestantes += PASOS_POR_ESTRELLA; mensaje = "La estrella te concede 20 pasos."; }
                 else { mensaje = "Ya recogiste esta estrella."; return false; }
+
+                // Al recogerla, la estrella deja de bloquear el movimiento.
+                zonas[filaObjeto][columnaObjeto] = '.';
+                visual[filaObjeto][columnaObjeto] = ' ';
+
                 recordarMirado(simbolo); Sonido.recoger(); return false;
             }
             if (simbolo == 'D') {
