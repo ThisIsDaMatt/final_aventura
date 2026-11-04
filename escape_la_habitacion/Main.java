@@ -455,6 +455,12 @@ public class Main {
         else { mensaje = "Usa W, A, S o D."; return false; }
         char casilla = casillaZona(nf, nc);
         if (habitacionActual >= 2 && pasosRestantes <= 0) { derrota = true; return true; }
+        // En la habitacion 2, la zona derecha solo se alcanza por la puerta interior.
+        if (habitacionActual == 2 && !puertaInteriorAbierta2 && nc >= 13) {
+            mensaje = "La puerta interior sigue cerrada. Necesitas la llave del lado de los pinchos.";
+            Sonido.golpe();
+            return false;
+        }
         if (casilla == 'D' && ((habitacionActual == 2 && puertaInteriorAbierta2) ||
                 (habitacionActual == 3 && puertaInteriorAbierta3))) casilla = '.';
         if (casilla == '.' || (casilla == 'S' && habitacionActual == 2)) {
