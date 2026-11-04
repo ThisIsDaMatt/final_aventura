@@ -564,7 +564,7 @@ public class Main {
                 recordarMirado(simbolo); mensaje = "Recogiste la llave pequeña."; return false;
             }
             if (simbolo == 'I') {
-                mostrarEscena(objeto[1],objeto[2],"El código de esta inscripción es "+codigoFalso2+". Parece una pista, pero no es el tratamiento.");
+                mostrarEscena(objeto[1],objeto[2],"El código anotado es "+codigoFalso2+". La inscripción está escrita con tinta oscura y parece relacionarse con el estante.");
                 esperarEnter(); recordarMirado(simbolo); return false;
             }
             if (simbolo == 'C') {
