@@ -58,7 +58,8 @@ Si aparece PRUEBAS CORRECTAS, los cálculos principales, la generación de clave
 | `Main.java`        | El motor del juego, los menús, los puzzles y las reglas de movimiento. |
 | `habitacion1.txt`  | La matriz **VISUAL** de la habitación 1 (el dibujo en ASCII).       |
 | `zonas1.txt`       | La matriz de **MOVIMIENTO** de la habitación 1.                     |
-| `objetos1.csv`     | Los objetos de la habitación 1 (nombre, arte y detalle).            |\n| `habitacion2.txt`, `zonas2.txt`, `objetos2.csv` | Mapa visual, movimiento y objetos de la habitación 2. |\n| `habitacion3.txt`, `zonas3.txt`, `objetos3.csv` | Mapa visual, movimiento y objetos de la habitación 3. |\n| `PruebasRegresion.java` | Pruebas automáticas de cálculos y archivos del juego. |
+| `objetos1.csv`     | Los objetos de la habitación 1 (nombre, arte y detalle).            |
+| `habitacion2.txt`, `zonas2.txt`, `objetos2.csv` | Mapa visual, movimiento y objetos de la habitación 2. |\n| `habitacion3.txt`, `zonas3.txt`, `objetos3.csv` | Mapa visual, movimiento y objetos de la habitación 3. |\n| `PruebasRegresion.java` | Pruebas automáticas de cálculos y archivos del juego. |
 | `arte/*.txt`       | El ASCII art: título, preview (`mini_x.txt`) y escena de cada uno.  |
 | `Sonido.java`      | La caja de música: efectos MIDI y música de fondo.                  |
 | `musica/*.mid`     | La banda sonora: archivos MIDI que suenan en bucle.                 |
