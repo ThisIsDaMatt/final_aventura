@@ -185,10 +185,12 @@ public class Main {
             }
         }
 
-        if (!escapo) {
+        if (derrota) {
             System.out.println();
-            if (derrota) System.out.println(" GAME OVER. Se agotaron tus pasos o intentos.");
-            else System.out.println(" Te rindes. La habitacion gana esta vez...");
+            System.out.println(" GAME OVER. Se agotaron tus pasos o intentos.");
+        } else if (!escapo) {
+            System.out.println();
+            System.out.println(" Te rindes. La habitacion gana esta vez...");
         }
         Sonido.apagar(); // sin esto el programa no termina
     }
