@@ -1,11 +1,10 @@
 # Escape: La Habitación 🔐
 
-Código base del **proyecto final** del curso de Lógica de Programación.
-Es un juego de "salir de la habitación" en consola… pero el juego completo son
-**TRES habitaciones**. La habitación 1 ya funciona de punta a punta y es igual
-para todos los grupos. Las habitaciones 2 y 3 **las construye el equipo
-programando**: el motor ya llama a los métodos *placeholder* que ustedes deben
-completar — sin programarlos, **es imposible llegar al final del juego**.
+Proyecto final del curso de Lógica de Programación: un juego de escape en
+consola compuesto por **tres habitaciones conectadas**. El jugador explora los
+mapas, examina objetos, resuelve acertijos y administra sus pasos para escapar.
+La habitación 1 conserva el puzzle base; las habitaciones 2 y 3 incorporan
+mecánicas propias de esta versión.
 
 ## Contenido
 
@@ -31,14 +30,35 @@ javac *.java
 java Main
 ```
 
+### Modos de juego
+
+- **Historia:** completa las tres habitaciones en orden.
+- **Práctica:** elige una habitación y juega únicamente esa.
+- **Contrarreloj:** completa la historia con menos pasos disponibles en las habitaciones 2 y 3.
+
+Al comenzar puedes escribir tu nombre y elegir la dificultad. Fácil ofrece 20 % más de pasos y pistas ilimitadas; normal ofrece cinco pistas; difícil ofrece 20 % menos de pasos, dos pistas y dos intentos en el acertijo final. Fácil y normal permiten tres intentos.
+
+Controles: W, A, S, D para moverse; H para pedir una pista; M para activar o desactivar música; E para activar o desactivar efectos; X para descubrir un mensaje secreto; Q para salir.
+
+### Comprobar el proyecto
+
+Desde esta carpeta ejecuta:
+
+```bash
+javac *.java
+java PruebasRegresion
+```
+
+Si aparece PRUEBAS CORRECTAS, los cálculos principales, la generación de claves y la carga y dimensiones de los tres mapas pasaron las comprobaciones automáticas.
+
 ## Archivos
 
 | Archivo            | Qué es                                                              |
 | ------------------ | ------------------------------------------------------------------- |
-| `Main.java`        | El motor del juego, con los **PLACEHOLDER** y `TODO equipo:`.       |
+| `Main.java`        | El motor del juego, los menús, los puzzles y las reglas de movimiento. |
 | `habitacion1.txt`  | La matriz **VISUAL** de la habitación 1 (el dibujo en ASCII).       |
 | `zonas1.txt`       | La matriz de **MOVIMIENTO** de la habitación 1.                     |
-| `objetos1.csv`     | Los objetos de la habitación 1 (nombre, arte y detalle).            |
+| `objetos1.csv`     | Los objetos de la habitación 1 (nombre, arte y detalle).            |\n| `habitacion2.txt`, `zonas2.txt`, `objetos2.csv` | Mapa visual, movimiento y objetos de la habitación 2. |\n| `habitacion3.txt`, `zonas3.txt`, `objetos3.csv` | Mapa visual, movimiento y objetos de la habitación 3. |\n| `PruebasRegresion.java` | Pruebas automáticas de cálculos y archivos del juego. |
 | `arte/*.txt`       | El ASCII art: título, preview (`mini_x.txt`) y escena de cada uno.  |
 | `Sonido.java`      | La caja de música: efectos MIDI y música de fondo.                  |
 | `musica/*.mid`     | La banda sonora: archivos MIDI que suenan en bucle.                 |
