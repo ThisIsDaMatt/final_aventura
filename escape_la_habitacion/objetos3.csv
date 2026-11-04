@@ -1,0 +1,6 @@
+simbolo,nombre,archivo,detalle
+K,una llave antigua,alfombra,Una llave que permite abrir la puerta interior del laberinto.
+?,una casilla con un número,nota,Hay un número de dos cifras oculto en esta casilla.
+*,una estrella,alfombra,Una estrella que aumenta tus pasos disponibles.
+D,la puerta interior,puerta,Una puerta que separa el primer tramo del laberinto. La llave permite abrirla.
+P,la puerta de salida,puerta,La puerta muestra las instrucciones para formar una clave de seis cifras.
