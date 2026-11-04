@@ -1,0 +1,33 @@
+name: Compilar juego Java
+
+on:
+  push:
+    branches:
+      - integracion-habitaciones-2-y-3
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: escape_la_habitacion
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verificar dimensiones de mapas
+        run: |
+          for mapa in habitacion2.txt zonas2.txt habitacion3.txt zonas3.txt; do
+            awk 'length($0) != 37 { exit 1 } END { if (NR != 13) exit 1 }' "$mapa"
+          done
+          test -f objetos2.csv
+          test -f objetos3.csv
+      - name: Compilar
+        run: javac *.java
