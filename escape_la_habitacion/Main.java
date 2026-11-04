@@ -66,6 +66,11 @@ public class Main {
 
     /** El modo elegido en seleccionarTipoJuego() (PLACEHOLDER 1); 1 = historia. */
     public static int tipoJuego = 1;
+    public static int habitacionFinal = TOTAL_HABITACIONES;
+    public static int pistasRestantes = Integer.MAX_VALUE;
+    public static int pistasUsadas = 0;
+    public static int movimientosTotales = 0;
+    public static int intentosMaximosPuerta3 = 3;
 
     /** La fila de la matriz donde esta parado el jugador. */
     public static int fila;
@@ -154,7 +159,7 @@ public class Main {
         tipoJuego = seleccionarTipoJuego();
         configurarJugador();
 
-        if (!cargarMundo(1)) {
+        if (!cargarMundo(habitacionActual)) {
             return; // sin datos no hay juego
         }
         Sonido.musicaFondo("musica/ambiente.mid");
@@ -214,9 +219,23 @@ public class Main {
      * @return el modo elegido por el jugador (por ahora siempre 1).
      */
     public static int seleccionarTipoJuego() {
-        // TODO equipo: menu de modos de juego + lectura validada.
-        System.out.println(" Modo de juego: HISTORIA (TODO equipo: el menu de modos)");
-        return 1;
+        System.out.println();
+        System.out.println(bordeEscena());
+        System.out.println(centrar("ESCAPE: LA HABITACION", ANCHO_ESCENA));
+        System.out.println(centrar("1. Historia completa (3 habitaciones)", ANCHO_ESCENA));
+        System.out.println(centrar("2. Practicar una habitacion", ANCHO_ESCENA));
+        System.out.println(centrar("3. Contrarreloj (historia con menos pasos)", ANCHO_ESCENA));
+        System.out.println(bordeEscena());
+        int opcion = leerNumeroEntre("Selecciona el modo (1-3): ", 1, 3);
+        if (opcion == 2) {
+            habitacionActual = leerNumeroEntre("Que habitacion quieres jugar (1-3): ", 1, 3);
+            habitacionFinal = habitacionActual;
+        } else {
+            habitacionActual = 1;
+            habitacionFinal = TOTAL_HABITACIONES;
+        }
+        tipoJuego = opcion;
+        return opcion;
     }
 
     /**
@@ -230,9 +249,18 @@ public class Main {
      * aqui el estado inicial del sonido (M/E).</p>
      */
     public static void configurarJugador() {
-        // TODO equipo: pedir nombre, elegir dificultad y aplicarla.
-        System.out.println(" Jugador: " + nombreJugador + " | Dificultad: " + dificultad
-                + " (TODO equipo: la terminal inicial)");
+        System.out.print("Como te llamas? ");
+        String nombre = lector.nextLine().trim();
+        if (!nombre.isEmpty()) nombreJugador = nombre.length() > 24 ? nombre.substring(0, 24) : nombre;
+        System.out.println("Dificultad:");
+        System.out.println("1. Facil: mas pasos y pistas ilimitadas");
+        System.out.println("2. Normal: pasos normales y 5 pistas");
+        System.out.println("3. Dificil: menos pasos y 2 pistas");
+        dificultad = leerNumeroEntre("Elige dificultad (1-3): ", 1, 3);
+        pistasRestantes = dificultad == 1 ? Integer.MAX_VALUE : (dificultad == 2 ? 5 : 2);
+        intentosMaximosPuerta3 = dificultad == 3 ? 2 : 3;
+        System.out.println("Bienvenido, " + nombreJugador + ". La aventura comienza.");
+        System.out.println();
     }
 
     /**
@@ -245,7 +273,12 @@ public class Main {
      * generico del profesor.</p>
      */
     public static void configurarArte() {
-        // TODO equipo: titulo propio y arte por habitacion/dificultad.
+        System.out.println();
+        System.out.println(bordeEscena());
+        System.out.println(centrar("E S C A P E", ANCHO_ESCENA));
+        System.out.println(centrar("LA HABITACION", ANCHO_ESCENA));
+        System.out.println(centrar("Tres pruebas. Una salida. Ningun camino sencillo.", ANCHO_ESCENA));
+        System.out.println(bordeEscena());
         imprimirArte("arte/titulo.txt");
         System.out.println();
     }
@@ -269,7 +302,7 @@ public class Main {
      */
     public static boolean siguienteHabitacion() {
 
-        if (habitacionActual >= TOTAL_HABITACIONES) return true;
+        if (habitacionActual >= habitacionFinal) { mostrarVictoria(); return true; }
         habitacionActual++;
         if (!cargarMundo(habitacionActual)) { derrota = true; return true; }
         System.out.println(bordeEscena());
@@ -336,11 +369,11 @@ public class Main {
         } else {
             inventario = new String[10]; totalInventario = 0;
             if (numero == 2) {
-                pasosRestantes = PASOS_INICIALES_H2 - (tetano ? PENALIZACION_TETANO : 0);
+                pasosRestantes = (int)(PASOS_INICIALES_H2 * factorDificultad()) - (tetano ? PENALIZACION_TETANO : 0) - (tipoJuego == 3 ? 35 : 0);
                 cofreAbierto2 = false; estanteBloqueado2 = false; curado2 = false;
                 puertaInteriorAbierta2 = false; entradasPinchos2 = 0;
             } else {
-                pasosRestantes = PASOS_INICIALES_H3 - (tetano ? PENALIZACION_TETANO : 0);
+                pasosRestantes = (int)(PASOS_INICIALES_H3 * factorDificultad()) - (tetano ? PENALIZACION_TETANO : 0) - (tipoJuego == 3 ? 35 : 0);
                 estrellaSuperior3 = false; estrellaInferior3 = false; llave3 = false;
                 puertaInteriorAbierta3 = false; numeroUno3 = false; numeroDos3 = false;
                 intentosPuerta3 = 0;
@@ -469,6 +502,7 @@ public class Main {
             boolean entraPinchos = casilla == 'S' && casillaZona(fila, columna) != 'S';
             fila = nf; columna = nc;
             if (habitacionActual >= 2) pasosRestantes--;
+            movimientosTotales++;
             if (entraPinchos) {
                 entradasPinchos2++;
                 if (!tetanoYaContrajo) { tetanoYaContrajo = true; tetano = true; pasosRestantes -= PENALIZACION_TETANO; mensaje = "Contrajiste tetanos: pierdes 25 pasos adicionales."; }
@@ -567,7 +601,10 @@ public class Main {
                 if (!cofreAbierto2) { mensaje = "Primero debes abrir el cofre y descubrir el código de salida."; return false; }
                 System.out.print("Código de salida (ENTER cancela): ");
                 String intento = lector.nextLine().trim();
-                if (intento.equals(codigoSalida2)) return siguienteHabitacion();
+                if (intento.equals(codigoSalida2)) {
+                    if (habitacionActual >= habitacionFinal) { mostrarVictoria(); return true; }
+                    return siguienteHabitacion();
+                }
                 if (!intento.isEmpty()) { mensaje = "Código incorrecto. Inténtalo otra vez."; Sonido.error(); }
                 return false;
             }
@@ -693,8 +730,8 @@ public class Main {
             if (!numeroUno3 || !numeroDos3 || !llave3) { mensaje = "Todavía no has encontrado los tres números."; return false; }
             if (intento.equals(clave3)) { mostrarVictoria(); return true; }
             intentosPuerta3++; Sonido.error();
-            if (intentosPuerta3 >= 3) { derrota = true; mensaje = "Agotaste los tres intentos."; return true; }
-            mensaje = "Clave incorrecta. Te quedan "+(3-intentosPuerta3)+" intentos.";
+            if (intentosPuerta3 >= intentosMaximosPuerta3) { derrota = true; mensaje = "Agotaste los intentos disponibles."; return true; }
+            mensaje = "Clave incorrecta. Te quedan "+(intentosMaximosPuerta3-intentosPuerta3)+" intentos.";
             return false;
         }
         if (habitacionActual == 2) { mensaje = "Necesitas el código de salida que estaba dentro del cofre."; return false; }
@@ -703,7 +740,7 @@ public class Main {
         String intento = lector.nextLine().trim();
         if (intento.equals(clave)) {
             Sonido.exito();
-            if (habitacionActual >= TOTAL_HABITACIONES) { mostrarVictoria(); return true; }
+            if (habitacionActual >= habitacionFinal) { mostrarVictoria(); return true; }
             return siguienteHabitacion();
         }
         if (intento.isEmpty()) mensaje = "Te alejas de la puerta sin intentar nada.";
@@ -726,7 +763,13 @@ public class Main {
         Sonido.victoria();
         System.out.println(centrar("[ ENTER para salir ]", ANCHO_ESCENA));
         lector.nextLine();
-        // TODO equipo: resumen final (movimientos gastados, objetos mirados).
+        System.out.println();
+        System.out.println("RESUMEN DE LA PARTIDA");
+        System.out.println("Jugador: " + nombreJugador);
+        System.out.println("Habitaciones completadas: " + (tipoJuego == 2 ? 1 : habitacionFinal));
+        System.out.println("Movimientos realizados: " + movimientosTotales);
+        System.out.println("Pistas utilizadas: " + pistasUsadas);
+        System.out.println("Objetos examinados en la ultima habitacion: " + mirados.length());
     }
 
     /* ==================== PUZZLE, PISTAS Y SECRETO ==================== */
@@ -766,6 +809,9 @@ public class Main {
      * de pistas segun la dificultad.
      */
     public static String darPista() {
+        if (pistasRestantes <= 0) return "Ya no te quedan pistas. Examina los objetos y usa las notas.";
+        if (pistasRestantes != Integer.MAX_VALUE) pistasRestantes--;
+        pistasUsadas++;
 
         if (habitacionActual == 2) {
             if (!tieneObjeto("llave pequeña")) return "Busca la llave pequeña. Tendrás que cruzar los pinchos.";
@@ -792,7 +838,12 @@ public class Main {
      * creador del cuarto.
      */
     public static void easterEgg() {
-        mensaje = "Presionaste algo extrano... pero nada ocurre. (TODO equipo)";
+        mensaje = "SECRETO: La paciencia tambien es una herramienta. Observa los simbolos y revisa cada pista.";
+        System.out.println();
+        System.out.println(bordeEscena());
+        System.out.println(centrar("MENSAJE OCULTO DEL EQUIPO", ANCHO_ESCENA));
+        System.out.println(centrar("La paciencia tambien es una herramienta.", ANCHO_ESCENA));
+        System.out.println(bordeEscena());
     }
 
     /* ==================== ESTADO DEL JUGADOR ==================== */
@@ -921,6 +972,28 @@ public class Main {
     }
 
     /* ==================== ENTRADA Y ARCHIVOS ==================== */
+
+    /** Multiplicador de pasos segun la dificultad elegida. */
+    public static double factorDificultad() {
+        if (dificultad == 1) return 1.20;
+        if (dificultad == 3) return 0.80;
+        return 1.0;
+    }
+
+    /** Lee un entero dentro de un intervalo y vuelve a preguntar si es invalido. */
+    public static int leerNumeroEntre(String pregunta, int minimo, int maximo) {
+        while (true) {
+            System.out.print(pregunta);
+            String entrada = lector.nextLine().trim();
+            try {
+                int numero = Integer.parseInt(entrada);
+                if (numero >= minimo && numero <= maximo) return numero;
+            } catch (NumberFormatException e) {
+                // Se vuelve a solicitar una entrada valida.
+            }
+            System.out.println("Opcion invalida. Escribe un numero entre " + minimo + " y " + maximo + ".");
+        }
+    }
 
     /** Lee 1 o 2 validando la entrada. Nunca rompe el programa. */
     public static int leerOpcion() {
